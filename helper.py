@@ -21,12 +21,12 @@ def confusion_matrix(true_labels, predicted_labels):
 def signum(x):
     return np.where(x >= 0, 1, -1)
 
+def linear(x):
+    return x
+
 def calc(features,weights,bias,activation_function):
     linear_output = np.dot(features, weights) + bias
 
     prediction = activation_function(linear_output)
 
     return prediction
-
-def linear(x):
-    return x
