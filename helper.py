@@ -1,4 +1,5 @@
 import numpy as np
+
 def confusion_matrix(true_labels, predicted_labels):
     tp = tn = fp = fn = 0
     for true, pred in zip(true_labels, predicted_labels):

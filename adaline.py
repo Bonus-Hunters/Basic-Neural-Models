@@ -2,7 +2,7 @@ import numpy as np
 from helper import *
 
 
-class Adaline:
+class Adaline():
     def __init__(self, learning_rate=0.01, max_iterations=1000, use_bias=True, acceptable_error=0.01):
        
         self.learning_rate = learning_rate
