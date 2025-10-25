@@ -31,3 +31,60 @@ def calc(features,weights,bias,activation_function):
     prediction = activation_function(linear_output)
 
     return prediction
+
+
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, accuracy_score
+
+def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair):
+    """
+    Plot the decision boundary (line) and the training points
+    """
+    plt.figure(figsize=(6, 5))
+
+    # Scatter the training data
+    for label, color, name in zip([1, -1], ['blue', 'orange'], class_pair):
+        plt.scatter(
+            X_train[y_train == label][:, 0],
+            X_train[y_train == label][:, 1],
+            color=color,
+            label=name
+        )
+
+    # Calculate decision boundary line
+    # Line equation: w1*x1 + w2*x2 + b = 0  -->  x2 = -(w1*x1 + b)/w2
+    x1_vals = np.linspace(X_train[:, 0].min(), X_train[:, 0].max(), 100)
+    x2_vals = -(weights[0] * x1_vals + bias) / weights[1]
+    plt.plot(x1_vals, x2_vals, color='black', linewidth=2)
+
+    plt.xlabel(feature_pair[0])
+    plt.ylabel(feature_pair[1])
+    plt.title("Decision Boundary")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def test_classifier(model, X_test, y_test):
+    """
+    Test classifier and compute confusion matrix and accuracy
+    """
+    y_pred = model.predict(X_test)
+    cm = confusion_matrix(y_test, y_pred)
+    acc = accuracy_score(y_test, y_pred)
+
+    print("Confusion Matrix:\n", cm)
+    print("\nOverall Accuracy:", round(acc * 100, 2), "%")
+
+    return cm, acc
+
+
+# === Example usage ===
+# Assume you already have: X_train, X_test, y_train, y_test from prepare_data()
+# And a trained model with attributes: weights_ and bias (like in your Adaline class)
+
+# Example after training Adaline:
+# adaline.train(X_train, y_train)
+# plot_decision_boundary(X_train, y_train, adaline.weights, adaline.bias, feature_pair, class_pair)
+# test_classifier(adaline, X_test, y_test)
+

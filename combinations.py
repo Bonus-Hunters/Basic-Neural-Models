@@ -5,13 +5,14 @@ import pandas as pd
 from SLP import Perceptron
 from adaline import Adaline
 import util
-
+from sklearn.model_selection import train_test_split
+from helper import *
 # Load the data
 df = pd.read_csv(util.get_data_path())
 
 # Define features and classes
 features = ['CulmenLength', 'CulmenDepth', 'FlipperLength', 'BodyMass', 'Origin_Biscoe', 'Origin_Dream', 'Origin_Torgersen']
-classes = [0, 1, 2]
+classes = ['Adelie', 'Chinstrap', 'Gentoo']
 
 def scale_features(X):
     """Scale features to have zero mean and unit variance"""
@@ -21,7 +22,7 @@ def scale_features(X):
     std = np.where(std == 0, 1, std)
     return (X - mean) / std, mean, std
 
-def prepare_data(df, class_pair, feature_pair, scale=True):
+def prepare_data(df, class_pair, feature_pair):
     """
     Prepare data for binary classification with selected features
     """
@@ -38,16 +39,12 @@ def prepare_data(df, class_pair, feature_pair, scale=True):
     for col in X.columns:
         if X[col].dtype == 'bool':
             X[col] = X[col].astype(int)
-    
+        
     X_values = X.values.astype(float)
-    y = df_filtered['binary_label'].values
-    
-    # Scale features for Adaline (important for numerical stability)
-    if scale:
-        X_scaled, mean, std = scale_features(X_values)
-        return X_scaled, y, mean, std
-    else:
-        return X_values, y, None, None
+
+    y = df_filtered['binary_label']
+    X_train, X_test , y_train, y_test = train_test_split(X_values,y,test_size=0.4,stratify=y, random_state= 42)
+    return X_train,X_test,y_train,y_test
 
 def apply_scaling(X, mean, std):
     """Apply scaling to new data using precomputed mean and std"""
@@ -108,18 +105,18 @@ def train_and_save_models():
                 feature_names = [f.replace('Origin_', '') for f in feature_pair]
                 print(f"    Features: {feature_names}")
                 
-                # Prepare data (scale for Adaline, don't scale for SLP)
-                scale_data = (model_name == 'Adaline')  # Only scale for Adaline
-                if scale_data:
-                    X, y, mean, std = prepare_data(df, class_pair, feature_pair, scale=True)
-                    scaling_params = {'mean': mean, 'std': std}
-                else:
-                    X, y, mean, std = prepare_data(df, class_pair, feature_pair, scale=False)
-                    scaling_params = None
+
+                
+                X_train,X_test,y_train,y_test = prepare_data(df, class_pair, feature_pair)
+
+                X_train, mean, std = scale_features(X_train)
+
+                scaling_params = {'mean': mean, 'std': std}
+
                 
                 # Train model
                 try:
-                    model.train(X, y)
+                    model.train(X_train, y_train)
                     
                     # Check for NaN values in weights
                     if model.weights is not None and np.any(np.isnan(model.weights)):
@@ -168,14 +165,10 @@ def evaluate_models(results, df):
         feature_pair = result['features']
         scaling_params = result.get('scaling_params')
         
-        # Prepare test data - use the same scaling as during training
-        if model_name == 'Adaline' and scaling_params:
-            # For Adaline, we need to scale the test data using the same parameters
-            X_test_raw, y_test, _, _ = prepare_data(df, class_pair, feature_pair, scale=False)
-            X_test = apply_scaling(X_test_raw, scaling_params['mean'], scaling_params['std'])
-        else:
-            # For SLP, no scaling needed
-            X_test, y_test, _, _ = prepare_data(df, class_pair, feature_pair, scale=False)
+       
+        X_train,X_test,y_train,y_test = prepare_data(df, class_pair, feature_pair)
+        X_test = apply_scaling(X_test, scaling_params['mean'], scaling_params['std'])
+
         
         # Recreate model for prediction
         if model_name == 'SLP':
@@ -204,10 +197,29 @@ def evaluate_models(results, df):
         print(f"  Path: {result['weights_path']}")
         print()
 
+def plot_model(index= 0, results= []):
+
+    assert(index<len(results))
+    # Get the first result
+    first_result = results[index]
+
+    # Extract relevant values
+    weights = first_result['weights']
+    bias = first_result['bias']
+    class_pair = first_result['classes']
+    feature_pair = first_result['features']
+
+    X_train,X_test,y_train,y_test = prepare_data(df,class_pair,feature_pair)
+    # Now call your plot function
+    plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair)
+
+
+
 if __name__ == "__main__":
     # Train all models and save weights
     results = train_and_save_models()
     
+    plot_model(0,results)
     # Evaluate and print summary
     evaluate_models(results, df)
     
@@ -227,6 +239,6 @@ if __name__ == "__main__":
     for model_name, count in models_summary.items():
         print(f"{model_name}: {count} combinations")
     
-    total_combinations = len(list(itertools.combinations(classes, 2))) * len(list(itertools.combinations(features, 2)))
+    total_combinations = 2 * len(list(itertools.combinations(classes, 2))) * len(list(itertools.combinations(features, 2)))
     print(f"Total possible combinations: {total_combinations}")
     print(f"Success rate: {len(results)}/{total_combinations} ({len(results)/total_combinations*100:.1f}%)")
