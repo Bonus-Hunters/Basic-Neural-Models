@@ -180,12 +180,10 @@ def evaluate_models(results, df):
         if hasattr(model, 'bias'):
             model.bias = result['bias']
         
-        # Make predictions
-        predictions = model.predict(X_test)
-        
-        # Calculate accuracy
-        accuracy = np.mean(predictions == y_test)
-        
+        cm, accuracy = test_classifier(model,X_test,y_test)
+
+        # plot_confusion_matrix(cm)
+
         # Simplify feature names for display
         feature_names = [f.replace('Origin_', '') for f in feature_pair]
         
@@ -218,8 +216,8 @@ def plot_model(index= 0, results= []):
 if __name__ == "__main__":
     # Train all models and save weights
     results = train_and_save_models()
-    
-    plot_model(0,results)
+    for i in range(len(results)):
+        plot_model(i,results)
     # Evaluate and print summary
     evaluate_models(results, df)
     
