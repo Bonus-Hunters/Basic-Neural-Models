@@ -1,8 +1,7 @@
 import numpy as np
 from helper import *
 
-
-class Perceptron:
+class Perceptron():
     def __init__(self, learning_rate=0.01, max_iterations=1000, use_bias=True):
        
         self.learning_rate = learning_rate
@@ -34,6 +33,7 @@ class Perceptron:
     def predict(self, X):
         linear_output = np.dot(X, self.weights) + self.bias
         return signum(linear_output)
+    
 
 
 
