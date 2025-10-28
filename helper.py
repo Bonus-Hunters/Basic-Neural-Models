@@ -36,7 +36,8 @@ def calc(features,weights,bias,activation_function):
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair):
+
+def construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class_pair):
     """
     Plot the decision boundary (line) and the training points
     """
@@ -62,6 +63,10 @@ def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_
     plt.title("Decision Boundary")
     plt.legend()
     plt.grid(True)
+    return plt
+
+def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair):
+    plt = construct_plot(X_train, y_train, weights, bias, feature_pair, class_pair)
     plt.show()
 
 
@@ -78,7 +83,7 @@ def test_classifier(model, X_test, y_test):
 
     return cm, acc
 
-def plot_confusion_matrix(cm_dict):
+def construct_cm_plot(cm_dict):
     # Extract values
     tp = cm_dict["True Positive"]
     tn = cm_dict["True Negative"]
@@ -111,5 +116,10 @@ def plot_confusion_matrix(cm_dict):
             ax.text(j, i, cm[i, j], ha="center", va="center", color="black", fontsize=12)
 
     plt.colorbar(im)
+    return plt
+
+
+def plot_confusion_matrix(cm_dict):
+    plt = construct_cm_plot(cm_dict)
     plt.show()
 

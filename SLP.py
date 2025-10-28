@@ -34,6 +34,12 @@ class Perceptron():
         linear_output = np.dot(X, self.weights) + self.bias
         return signum(linear_output)
     
-
+    
+    def to_dict(self, feature_pair, class_pair):
+        data = self.__dict__.copy()
+        data["type"] = "Perceptron"
+        data["features"] = feature_pair
+        data["classes"] = class_pair
+        return data
 
 
