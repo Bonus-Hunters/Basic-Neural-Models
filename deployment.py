@@ -20,9 +20,10 @@ if menu_choice == "Create Model":
     if clicked:
        # X_train,X_test,Y_train,Y_test = dataset_vals
 
-        display_plot(model, model_data, dataset_vals)
+        model = display_plot(model, model_data, dataset_vals)
+        util.save_model(model, model_data["model_name"])
         display_confusion_Mmtrix(model,dataset_vals, model_data["classes"])
 
     
 elif menu_choice == "Predict":
-   pass
+    predict_model_UI()
