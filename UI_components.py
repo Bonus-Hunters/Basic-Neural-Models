@@ -135,12 +135,20 @@ def predict_model_UI():
     model = st.session_state.loaded_model
     if model:
         st.markdown("Enter Feature Values for Prediction")
-        f1, f2 = getattr(model, "features", ("Feature 1", "Feature 2"))
-        val1 = st.number_input(f"{f1}", format="%.4f")
-        val2 = st.number_input(f"{f2}", format="%.4f")
-         
+        selected_features = getattr(model, "features", [])
+        user_inputs = []
+        for feature in selected_features:
+            if feature == "OriginLocation":
+                val = st.selectbox("Origin Location", origin_locations)
+                origin_encoded = [0, 0, 0]
+                origin_encoded[origin_locations.index(val)] = 1
+                user_inputs.extend(origin_encoded)  
+            else:
+                val = st.number_input(f"Enter {feature}", format="%.4f")
+                user_inputs.append(val)
+
         if st.button("Predict"):
-            X_new = np.array([[val1, val2]])
+            X_new = np.array([user_inputs])
             y_pred = model.predict(X_new)
             pred_val = int(float(y_pred[0]))
             if pred_val in [-1, 0]:
