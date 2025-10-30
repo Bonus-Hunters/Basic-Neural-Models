@@ -23,7 +23,7 @@ def prepare_data(df, class_pair, feature_pair):
 
     y = df_filtered['binary_label']
     X_train, X_test , y_train, y_test = train_test_split(X_values,y,test_size=0.4,stratify=y, random_state= 42)
-    return 
+    return X_train, X_test , y_train, y_test
 
 def scale_features(X):
     """Scale features to have zero mean and unit variance"""
