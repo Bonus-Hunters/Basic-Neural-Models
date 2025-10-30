@@ -15,7 +15,7 @@ menu_choice = st.sidebar.selectbox("Navigation", ["Create Model", "Predict"])
 if menu_choice == "Create Model":
     model, model_data, clicked = construct_model_UI()
     df = util.pd.read_csv(util.get_data_path())
-    dataset_vals = prepare_data(df, model_data["classes"], model_data["features"])
+    dataset_vals = util.get_data(model_data["classes"], model_data["features"])
     if clicked:
         X_train, X_test, Y_train, Y_test = dataset_vals
         model.train(X_train, Y_train)

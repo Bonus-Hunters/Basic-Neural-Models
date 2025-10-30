@@ -16,9 +16,7 @@ features = [
     "CulmenDepth",
     "FlipperLength",
     "BodyMass",
-    "Origin_Biscoe",
-    "Origin_Dream",
-    "Origin_Torgersen",
+    "OriginLocation",
 ]
 classes = ["Adelie", "Chinstrap", "Gentoo"]
 

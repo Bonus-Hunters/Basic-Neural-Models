@@ -20,7 +20,7 @@ def get_data(class_pair, feature_pair):
     X_train,mean,std =scale_features(X_train)
     X_test = apply_scaling(X_test,mean,std)
     scaling_params = {"mean":mean,"std":std}
-    return X_train,X_test,y_train,y_test , scaling_params
+    return X_train,X_test,y_train,y_test
 
 
 
@@ -67,8 +67,8 @@ def get_model(model_name: str, savePath="./Models/"):
 
 
 def train_model(model: Adaline | Perceptron, class_pair, feature_pair):
-    X_train, X_test, y_train, y_test, scaling_params = get_data(
+    X_train, X_test, y_train, y_test = get_data(
         class_pair, feature_pair
     )
     model.train(X_train, y_train)
-    return model, X_test, y_test, scaling_params
+    return model, X_test, y_test 

@@ -11,6 +11,7 @@ def prepare_data(df, class_pair, feature_pair):
     # Create binary labels (1 for first class, -1 for second class)
     df_filtered['binary_label'] = df_filtered['Species'].apply(lambda x: 1 if x == class_pair[0] else -1)
     
+    print(feature_pair)
     # Select features and convert boolean columns to integers (0/1)
     X = df_filtered[list(feature_pair)].copy()
     

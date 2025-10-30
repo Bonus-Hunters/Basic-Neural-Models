@@ -11,9 +11,7 @@ features = [
     "OriginLocation",
     "BodyMass",
 ]
-origin_locations = ["Dream", "Biscoe", "Torgersen"]
 classes = ["Adelie", "Chinstrap", "Gentoo"]
-originLocationEncoding = ["Origin_Biscoe", "Origin_Dream", "Origin_Torgersen"]
 
 
 def construct_model_UI():
@@ -27,8 +25,6 @@ def construct_model_UI():
 
     # Feature selection (First dropdown)
     selected_feature_1 = st.selectbox("Select Feature 1", features, key="feature1")
-    if selected_feature_1 == "OriginLocation":
-        selected_feature_1 = originLocationEncoding
 
     # Update options for second dropdown (remove selected_feature_1)
     remaining_features = [f for f in features if f != selected_feature_1]
@@ -36,8 +32,6 @@ def construct_model_UI():
     selected_feature_2 = st.selectbox(
         "Select Feature 2", remaining_features, key="feature2"
     )
-    if selected_feature_2 == "OriginLocation":
-        selected_feature_1 = originLocationEncoding
     # Class selection dropdown
     combine_classes = [
         f"{classes[0]} & {classes[1]}",
@@ -155,12 +149,7 @@ def adjust_features(feature_pair, value_pair):
     adjusted_features = []
     i = 0
     for feature in feature_pair:
-        if feature == "OriginLocation":
-            adjusted_features.append(
-                [(x.split("_")[1]) == value_pair[i] for x in originLocationEncoding]
-            )
-        else:
-            adjusted_features.append(value_pair[i])
+        adjusted_features.append(value_pair[i])
         i += 1
 
     flat_features = [
@@ -173,55 +162,6 @@ def adjust_features(feature_pair, value_pair):
     return np.array(flat_features)
 
 
-##def predict_model_UI():
-    st.title("Predict Using Your Model")
-    st.markdown("---")
-
-    if "loaded_model" not in st.session_state:
-        st.session_state.loaded_model = None
-        st.session_state.model_info = None
-
-    model_name = st.text_input("Enter Model Name to Load")
-    if st.button("Load Model") and model_name.strip() != "":
-        model, model_info = util.get_model(model_name)
-        st.session_state.loaded_model = model
-        st.session_state.model_info = model_info
-        st.success(f"Model '{model_name}' loaded successfully")
-
-    model = st.session_state.loaded_model
-    model_info = st.session_state.model_info
-    st.markdown("---")
-
-    if model:
-        st.markdown("## Enter Feature Values for Prediction")
-        selected_features = model_info["features"]
-        user_inputs = {}
-        for feature in selected_features:
-            if type(feature) == list:
-                selected_origin = st.selectbox(
-                    "Select Origin", origin_locations, key="OriginFeature"
-                )
-                user_inputs["OriginLocation"] = selected_origin
-            else:
-                val = st.number_input(f"Enter {feature}", format="%.4f")
-                
-                InputValidator.validate_column(feature, val)
-              
-
-                user_inputs[feature] = val
-
-        if st.button("Predict"):
-            X_new = adjust_features(
-                list(user_inputs.keys()), list(user_inputs.values())
-            )
-            y_pred = model.predict(X_new)
-            print("prediction:", y_pred)
-            pred_val = int(float(y_pred))
-            if pred_val in [-1, 0]:
-                pred_label = model_info["classes"][0]
-            else:
-                pred_label = model_info["classes"][1]
-            st.success(f"Predicted Class: {pred_label}")
 def predict_model_UI():
     st.title("Predict Using Your Model")
     st.markdown("---")
@@ -249,32 +189,26 @@ def predict_model_UI():
         user_inputs = {}
         
         for feature in selected_features:
-            if type(feature) == list:
-                selected_origin = st.selectbox(
-                    "Select Origin", origin_locations, key="OriginFeature"
-                )
-                user_inputs["OriginLocation"] = selected_origin
-            else:
-                # Set appropriate min/max values based on feature type
-                min_val, max_val = get_feature_range(feature)
-                val = st.number_input(
-                    f"Enter {feature}", 
-                    format="%.4f",
-                    min_value=min_val,
-                    max_value=max_val,
-                    help=f"Must be between {min_val} and {max_val}"
-                )
-                
-                # Validate and show error immediately
-                try:
-                    InputValidator.validate_column(feature, val)
-                    user_inputs[feature] = val
-                    # Clear error if validation passes
-                    if feature in st.session_state.validation_errors:
-                        del st.session_state.validation_errors[feature]
-                except ValidationError as e:
-                    st.session_state.validation_errors[feature] = str(e)
-                    st.error(f"❌ {str(e)}")
+            # Set appropriate min/max values based on feature type
+            min_val, max_val = get_feature_range(feature)
+            val = st.number_input(
+                f"Enter {feature}", 
+                format="%.4f",
+                min_value=min_val,
+                max_value=max_val,
+                help=f"Must be between {min_val} and {max_val}"
+            )
+            
+            # Validate and show error immediately
+            try:
+                InputValidator.validate_column(feature, val)
+                user_inputs[feature] = val
+                # Clear error if validation passes
+                if feature in st.session_state.validation_errors:
+                    del st.session_state.validation_errors[feature]
+            except ValidationError as e:
+                st.session_state.validation_errors[feature] = str(e)
+                st.error(f"❌ {str(e)}")
 
         # Show summary of validation errors
         if st.session_state.validation_errors:
