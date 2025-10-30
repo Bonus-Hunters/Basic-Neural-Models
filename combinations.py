@@ -206,8 +206,9 @@ def plot_model(index= 0, results= []):
     bias = first_result['bias']
     class_pair = first_result['classes']
     feature_pair = first_result['features']
-
+    scaling_params = first_result['scaling_params']
     X_train,X_test,y_train,y_test = prepare_data(df,class_pair,feature_pair)
+    X_train = apply_scaling(X_train,scaling_params['mean'],scaling_params['std'])
     # Now call your plot function
     plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair)
 

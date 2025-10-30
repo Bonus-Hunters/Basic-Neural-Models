@@ -66,7 +66,7 @@ def construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class
     return plt
 
 def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair):
-    plt = construct_plot(X_train, y_train, weights, bias, feature_pair, class_pair)
+    plt = construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class_pair)
     plt.show()
 
 
