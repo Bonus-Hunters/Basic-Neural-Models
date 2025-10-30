@@ -45,7 +45,7 @@ def prepare_data(df, class_pair, feature_pair):
         lambda x: 1 if x == class_pair[0] else -1
     )
 
-    # Flatten feature_pair
+    # flatten feature pair in case of feature is OriginLocation
     flat_features = [
         x for item in feature_pair for x in (item if isinstance(item, list) else [item])
     ]

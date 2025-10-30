@@ -1,6 +1,7 @@
 import streamlit as st
 import util
 from UI_components import *
+import pprint
 
 # Data
 model = None
@@ -18,8 +19,14 @@ if menu_choice == "Create Model":
     if clicked:
         # X_train,X_test,Y_train,Y_test = dataset_vals
         display_plot(model, model_data, dataset_vals)
-        display_confusion_Matrix(model, dataset_vals, model_data["classes"])
-        util.save_model(model, model_data["model_name"])
+        display_confusion_Matrix(model, dataset_vals)
+        pprint.pprint(model_data)
+        util.save_model(
+            model,
+            model_data["model_name"],
+            model_data["classes"],
+            model_data["features"],
+        )
 
 
 elif menu_choice == "Predict":

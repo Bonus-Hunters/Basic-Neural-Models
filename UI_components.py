@@ -1,6 +1,8 @@
 import streamlit as st
 import util, helper
 from combinations import *
+import numpy as np
+from input_validator import *
 
 features = [
     "CulmenLength",
@@ -52,7 +54,11 @@ def construct_model_UI():
 
     # Additional user inputs
     eta = st.number_input(
-        "Enter Learning Rate", min_value=0.0001, max_value=10.0, step=0.001
+        "Enter Learning Rate",
+        min_value=0.0000,
+        max_value=10.0,
+        step=0.0001,
+        format="%.4f",
     )
     epochs = st.number_input("Enter Number of Epochs", min_value=1, step=1)
     mse_threshold = st.number_input("Enter MSE Threshold", min_value=0.0, step=0.01)
@@ -128,14 +134,45 @@ def display_plot(model, model_data, dataset_vals):
     st.pyplot(plt)
 
 
-def display_confusion_Matrix(model, dataset_vals, class_pair):
+def calc_accuracy(model, dataset_vals, y_predict):
+    X_train, X_test, Y_train, Y_test = dataset_vals
+    correct = sum(yt == yp for yt, yp in zip(Y_test, y_predict))
+    accuracy = correct / len(Y_test)
+    return accuracy
+
+
+def display_confusion_Matrix(model, dataset_vals):
     X_train, X_test, Y_train, Y_test = dataset_vals
     y_pred = model.predict(X_test)
     cm = helper.calc_confusion_matrix(Y_test, y_pred)
     fig = helper.construct_cm_plot(cm)
     st.pyplot(fig)
-<<<<<<< HEAD
-=======
+    st.markdown(
+        f"### Model Accuracy: {calc_accuracy(model, dataset_vals, y_pred)*100:.2f}%"
+    )
+
+
+def adjust_features(feature_pair, value_pair):
+    adjusted_features = []
+    i = 0
+    for feature in feature_pair:
+        if feature == "OriginLocation":
+            adjusted_features.append(
+                [(x.split("_")[1]) == value_pair[i] for x in originLocationEncoding]
+            )
+        else:
+            adjusted_features.append(value_pair[i])
+        i += 1
+
+    flat_features = [
+        x
+        for item in adjusted_features
+        for x in (item if isinstance(item, list) else [item])
+    ]
+
+    print("flatten:", flat_features)
+    return np.array(flat_features)
+
 
 def predict_model_UI():
     st.title("Predict Using Your Model")
@@ -143,35 +180,43 @@ def predict_model_UI():
 
     if "loaded_model" not in st.session_state:
         st.session_state.loaded_model = None
+        st.session_state.model_info = None
 
     model_name = st.text_input("Enter Model Name to Load")
-    if st.button("Load Model"):
-        model = util.get_model(model_name)
+    if st.button("Load Model") and model_name.strip() != "":
+        model, model_info = util.get_model(model_name)
         st.session_state.loaded_model = model
+        st.session_state.model_info = model_info
         st.success(f"Model '{model_name}' loaded successfully")
 
     model = st.session_state.loaded_model
+    model_info = st.session_state.model_info
+    st.markdown("---")
+
     if model:
-        st.markdown("Enter Feature Values for Prediction")
-        selected_features = getattr(model, "features", [])
-        user_inputs = []
+        st.markdown("## Enter Feature Values for Prediction")
+        selected_features = model_info["features"]
+        user_inputs = {}
         for feature in selected_features:
-            if feature == "OriginLocation":
-                val = st.selectbox("Origin Location", origin_locations)
-                origin_encoded = [0, 0, 0]
-                origin_encoded[origin_locations.index(val)] = 1
-                user_inputs.extend(origin_encoded)  
+            if type(feature) == list:
+                selected_origin = st.selectbox(
+                    "Select Origin", origin_locations, key="OriginFeature"
+                )
+                user_inputs["OriginLocation"] = selected_origin
             else:
                 val = st.number_input(f"Enter {feature}", format="%.4f")
-                user_inputs.append(val)
+                InputValidator.validate_column(feature, val)
+                user_inputs[feature] = val
 
         if st.button("Predict"):
-            X_new = np.array([user_inputs])
+            X_new = adjust_features(
+                list(user_inputs.keys()), list(user_inputs.values())
+            )
             y_pred = model.predict(X_new)
-            pred_val = int(float(y_pred[0]))
+            print("prediction:", y_pred)
+            pred_val = int(float(y_pred))
             if pred_val in [-1, 0]:
-                pred_label = model.classes[0]
+                pred_label = model_info["classes"][0]
             else:
-                pred_label = model.classes[1]
+                pred_label = model_info["classes"][1]
             st.success(f"Predicted Class: {pred_label}")
->>>>>>> 0f12833654d3ca8a10878a41f26a24c1a8d2232f
