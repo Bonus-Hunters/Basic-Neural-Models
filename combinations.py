@@ -5,7 +5,6 @@ import pandas as pd
 from SLP import Perceptron
 from adaline import Adaline
 import util
-from sklearn.model_selection import train_test_split
 from helper import *
 
 # Load the data
@@ -22,54 +21,6 @@ features = [
     "Origin_Torgersen",
 ]
 classes = ["Adelie", "Chinstrap", "Gentoo"]
-
-
-def scale_features(X):
-    """Scale features to have zero mean and unit variance"""
-    mean = np.mean(X, axis=0)
-    std = np.std(X, axis=0)
-    # Avoid division by zero for constant features
-    std = np.where(std == 0, 1, std)
-    return (X - mean) / std, mean, std
-
-
-def prepare_data(df, class_pair, feature_pair):
-    """
-    Prepare data for binary classification with selected features
-    """
-    # Filter data for the two classes
-    df_filtered = df[df["Species"].isin(class_pair)].copy()
-
-    # Create binary labels (1 for first class, -1 for second class)
-    df_filtered["binary_label"] = df_filtered["Species"].apply(
-        lambda x: 1 if x == class_pair[0] else -1
-    )
-
-    # flatten feature pair in case of feature is OriginLocation
-    flat_features = [
-        x for item in feature_pair for x in (item if isinstance(item, list) else [item])
-    ]
-
-    # Select features and convert boolean columns to integers (0/1)
-    X = df_filtered[list(flat_features)].copy()
-
-    # Convert boolean columns to integers
-    for col in X.columns:
-        if X[col].dtype == "bool":
-            X[col] = X[col].astype(int)
-
-    X_values = X.values.astype(float)
-
-    y = df_filtered["binary_label"]
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_values, y, test_size=0.4, stratify=y, random_state=42
-    )
-    return X_train, X_test, y_train, y_test
-
-
-def apply_scaling(X, mean, std):
-    """Apply scaling to new data using precomputed mean and std"""
-    return (X - mean) / std
 
 
 def save_weights(model, path, feature_names=None, scaling_params=None):
@@ -243,12 +194,13 @@ def plot_model(index=0, results=[]):
     first_result = results[index]
 
     # Extract relevant values
-    weights = first_result["weights"]
-    bias = first_result["bias"]
-    class_pair = first_result["classes"]
-    feature_pair = first_result["features"]
-
-    X_train, X_test, y_train, y_test = prepare_data(df, class_pair, feature_pair)
+    weights = first_result['weights']
+    bias = first_result['bias']
+    class_pair = first_result['classes']
+    feature_pair = first_result['features']
+    scaling_params = first_result['scaling_params']
+    X_train,X_test,y_train,y_test = prepare_data(df,class_pair,feature_pair)
+    X_train = apply_scaling(X_train,scaling_params['mean'],scaling_params['std'])
     # Now call your plot function
     plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair)
 

@@ -3,8 +3,7 @@ from SLP import Perceptron
 from adaline import Adaline
 import os
 import pickle, pprint
-
-
+from helper import prepare_data,scale_features,apply_scaling
 def get_data_path():
     return "processed_data/processed_data.csv"
 
@@ -16,7 +15,13 @@ def concate_data_frames(df0, df1):
 
 # supposed to get handled via a preprossing script
 def get_data(class_pair, feature_pair):
-    pass
+    df = pd.read_csv(get_data_path())
+    X_train,X_test,y_train,y_test = prepare_data(df,class_pair,feature_pair)
+    X_train,mean,std =scale_features(X_train)
+    X_test = apply_scaling(X_test,mean,std)
+    scaling_params = {"mean":mean,"std":std}
+    return X_train,X_test,y_train,y_test , scaling_params
+
 
 
 # ----- Util Functions for UI Deployment
