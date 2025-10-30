@@ -1,5 +1,5 @@
 import numpy as np
-
+from helper import *
 class NeuralNetworkBase:
     def __init__(self, weights=None, bias=None, use_bias=True):
         """
