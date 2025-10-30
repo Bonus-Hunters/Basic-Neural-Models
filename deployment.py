@@ -17,6 +17,8 @@ if menu_choice == "Create Model":
     df = util.pd.read_csv(util.get_data_path())
     dataset_vals = prepare_data(df, model_data["classes"], model_data["features"])
     if clicked:
+        X_train, X_test, Y_train, Y_test = dataset_vals
+        model.train(X_train, Y_train)
         # X_train,X_test,Y_train,Y_test = dataset_vals
         display_plot(model, model_data, dataset_vals)
         display_confusion_Matrix(model, dataset_vals)
