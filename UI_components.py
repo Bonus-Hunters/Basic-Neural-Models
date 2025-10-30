@@ -173,7 +173,7 @@ def adjust_features(feature_pair, value_pair):
     return np.array(flat_features)
 
 
-def predict_model_UI():
+##def predict_model_UI():
     st.title("Predict Using Your Model")
     st.markdown("---")
 
@@ -204,7 +204,10 @@ def predict_model_UI():
                 user_inputs["OriginLocation"] = selected_origin
             else:
                 val = st.number_input(f"Enter {feature}", format="%.4f")
+                
                 InputValidator.validate_column(feature, val)
+              
+
                 user_inputs[feature] = val
 
         if st.button("Predict"):
@@ -219,3 +222,86 @@ def predict_model_UI():
             else:
                 pred_label = model_info["classes"][1]
             st.success(f"Predicted Class: {pred_label}")
+def predict_model_UI():
+    st.title("Predict Using Your Model")
+    st.markdown("---")
+
+    if "loaded_model" not in st.session_state:
+        st.session_state.loaded_model = None
+        st.session_state.model_info = None
+        st.session_state.validation_errors = {}
+
+    model_name = st.text_input("Enter Model Name to Load")
+    if st.button("Load Model") and model_name.strip() != "":
+        model, model_info = util.get_model(model_name)
+        st.session_state.loaded_model = model
+        st.session_state.model_info = model_info
+        st.session_state.validation_errors = {}  # Reset errors when loading new model
+        st.success(f"Model '{model_name}' loaded successfully")
+
+    model = st.session_state.loaded_model
+    model_info = st.session_state.model_info
+    st.markdown("---")
+
+    if model:
+        st.markdown("## Enter Feature Values for Prediction")
+        selected_features = model_info["features"]
+        user_inputs = {}
+        
+        for feature in selected_features:
+            if type(feature) == list:
+                selected_origin = st.selectbox(
+                    "Select Origin", origin_locations, key="OriginFeature"
+                )
+                user_inputs["OriginLocation"] = selected_origin
+            else:
+                # Set appropriate min/max values based on feature type
+                min_val, max_val = get_feature_range(feature)
+                val = st.number_input(
+                    f"Enter {feature}", 
+                    format="%.4f",
+                    min_value=min_val,
+                    max_value=max_val,
+                    help=f"Must be between {min_val} and {max_val}"
+                )
+                
+                # Validate and show error immediately
+                try:
+                    InputValidator.validate_column(feature, val)
+                    user_inputs[feature] = val
+                    # Clear error if validation passes
+                    if feature in st.session_state.validation_errors:
+                        del st.session_state.validation_errors[feature]
+                except ValidationError as e:
+                    st.session_state.validation_errors[feature] = str(e)
+                    st.error(f"❌ {str(e)}")
+
+        # Show summary of validation errors
+        if st.session_state.validation_errors:
+            st.error("⚠️ Please fix the validation errors above before predicting.")
+
+        if st.button("Predict", disabled=bool(st.session_state.validation_errors)):
+            try:
+                X_new = adjust_features(
+                    list(user_inputs.keys()), list(user_inputs.values())
+                )
+                y_pred = model.predict(X_new)
+                print("prediction:", y_pred)
+                pred_val = int(float(y_pred))
+                if pred_val in [-1, 0]:
+                    pred_label = model_info["classes"][0]
+                else:
+                    pred_label = model_info["classes"][1]
+                st.success(f"Predicted Class: {pred_label}")
+            except Exception as e:
+                st.error(f"Prediction failed: {str(e)}")
+
+def get_feature_range(feature):
+    """Return appropriate min/max values for number inputs"""
+    ranges = {
+        'CulmenLength': (30.0, 60.0),
+        'CulmenDepth': (13.0, 22.0),
+        'FlipperLength': (170.0, 240.0),
+        'BodyMass': (2500.0, 6500.0)
+    }
+    return ranges.get(feature, (0.0, 10000.0))
