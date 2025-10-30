@@ -1,4 +1,42 @@
 import numpy as np
+from sklearn.model_selection import train_test_split
+
+def prepare_data(df, class_pair, feature_pair):
+    """
+    Prepare data for binary classification with selected features
+    """
+    # Filter data for the two classes
+    df_filtered = df[df['Species'].isin(class_pair)].copy()
+    
+    # Create binary labels (1 for first class, -1 for second class)
+    df_filtered['binary_label'] = df_filtered['Species'].apply(lambda x: 1 if x == class_pair[0] else -1)
+    
+    print(feature_pair)
+    # Select features and convert boolean columns to integers (0/1)
+    X = df_filtered[list(feature_pair)].copy()
+    
+    # Convert boolean columns to integers
+    for col in X.columns:
+        if X[col].dtype == 'bool':
+            X[col] = X[col].astype(int)
+        
+    X_values = X.values.astype(float)
+
+    y = df_filtered['binary_label']
+    X_train, X_test , y_train, y_test = train_test_split(X_values,y,test_size=0.4,stratify=y, random_state= 42)
+    return X_train, X_test , y_train, y_test
+
+def scale_features(X):
+    """Scale features to have zero mean and unit variance"""
+    mean = np.mean(X, axis=0)
+    std = np.std(X, axis=0)
+    # Avoid division by zero for constant features
+    std = np.where(std == 0, 1, std)
+    return (X - mean) / std, mean, std
+
+def apply_scaling(X, mean, std):
+    """Apply scaling to new data using precomputed mean and std"""
+    return (X - mean) / std
 
 def calc_confusion_matrix(true_labels, predicted_labels):
     tp = tn = fp = fn = 0
@@ -36,7 +74,8 @@ def calc(features,weights,bias,activation_function):
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair):
+
+def construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class_pair):
     """
     Plot the decision boundary (line) and the training points
     """
@@ -62,6 +101,10 @@ def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_
     plt.title("Decision Boundary")
     plt.legend()
     plt.grid(True)
+    return plt
+
+def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair):
+    plt = construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class_pair)
     plt.show()
 
 
@@ -78,7 +121,7 @@ def test_classifier(model, X_test, y_test):
 
     return cm, acc
 
-def plot_confusion_matrix(cm_dict):
+def construct_cm_plot(cm_dict):
     # Extract values
     tp = cm_dict["True Positive"]
     tn = cm_dict["True Negative"]
@@ -111,5 +154,10 @@ def plot_confusion_matrix(cm_dict):
             ax.text(j, i, cm[i, j], ha="center", va="center", color="black", fontsize=12)
 
     plt.colorbar(im)
+    return plt
+
+
+def plot_confusion_matrix(cm_dict):
+    plt = construct_cm_plot(cm_dict)
     plt.show()
 
