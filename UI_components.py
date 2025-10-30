@@ -103,14 +103,14 @@ def construct_model_UI():
             model = util.construct_model_obj("Adaline", eta, epochs, add_bias, mse_threshold)
     return model, model_data, start_button
 
-
-
-
 def display_plot(model, model_data, dataset_vals):
     X_train,X_test,Y_train,Y_test = dataset_vals
     model.train(X_train, Y_train)
+    model.classes = model_data["classes"]
+    model.features = model_data["features"]
     plt = helper.construct_decision_plot(X_train, Y_train, model.weights,model.bias,  model_data["features"], model_data["classes"])
     st.pyplot(plt)
+    return model
 
 def display_confusion_Mmtrix(model, dataset_vals, class_pair):
     X_train,X_test,Y_train,Y_test = dataset_vals
@@ -118,3 +118,41 @@ def display_confusion_Mmtrix(model, dataset_vals, class_pair):
     cm = helper.calc_confusion_matrix(Y_test, y_pred)
     fig = helper.construct_cm_plot(cm)
     st.pyplot(fig)
+
+def predict_model_UI():
+    st.title("Predict Using Your Model")
+    st.markdown("---")
+
+    if "loaded_model" not in st.session_state:
+        st.session_state.loaded_model = None
+
+    model_name = st.text_input("Enter Model Name to Load")
+    if st.button("Load Model"):
+        model = util.get_model(model_name)
+        st.session_state.loaded_model = model
+        st.success(f"Model '{model_name}' loaded successfully")
+
+    model = st.session_state.loaded_model
+    if model:
+        st.markdown("Enter Feature Values for Prediction")
+        selected_features = getattr(model, "features", [])
+        user_inputs = []
+        for feature in selected_features:
+            if feature == "OriginLocation":
+                val = st.selectbox("Origin Location", origin_locations)
+                origin_encoded = [0, 0, 0]
+                origin_encoded[origin_locations.index(val)] = 1
+                user_inputs.extend(origin_encoded)  
+            else:
+                val = st.number_input(f"Enter {feature}", format="%.4f")
+                user_inputs.append(val)
+
+        if st.button("Predict"):
+            X_new = np.array([user_inputs])
+            y_pred = model.predict(X_new)
+            pred_val = int(float(y_pred[0]))
+            if pred_val in [-1, 0]:
+                pred_label = model.classes[0]
+            else:
+                pred_label = model.classes[1]
+            st.success(f"Predicted Class: {pred_label}")

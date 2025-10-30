@@ -1,7 +1,8 @@
 import pandas as pd
 from SLP import Perceptron
 from adaline import Adaline
-import json
+import os
+import pickle
 from helper import prepare_data,scale_features,apply_scaling
 def get_data_path():
     return 'processed_data/processed_data.csv'
@@ -29,26 +30,19 @@ def construct_model_obj(type : str, learning_rate, max_iterations, use_bias, acc
         model = Adaline(learning_rate, max_iterations, use_bias, acceptable_error)
     return model 
 
-def save_model(model : Adaline|Perceptron, model_name:str, class_pair, feature_pair, savePath = './Models/'):
-    model_name = model_name.replace(" ","_")
-    model = model.to_dict(feature_pair,class_pair)
-    with open(f"{savePath}{model_name}.json", "w") as f:
-        json.dump(model, f)   
+def save_model(model, model_name: str, savePath='./Models/'):
+    model_name = model_name.replace(" ", "_")
+    os.makedirs(savePath, exist_ok=True)
+    with open(f"{savePath}{model_name}.pkl", "wb") as f:
+        pickle.dump(model, f)
 
-# can be made with user browing the model instead of writing it  
-def get_model(model_name:str, savePath = './Models/'):
-    model_name = model_name.replace(" ","_")
-  
-    with open(f"{savePath}{model_name}.pkl", "r") as f:
-        data = json.load(f)
- 
-    if data["type"].lower() == "perceptron":
-        model = Perceptron(data.learning_rate,data.max_iterations, data.use_bias, data.acceptable_error)
-    elif data["type"].lower() == "adaline":
-        model = Adaline(data.learning_rate,data.max_iterations, data.use_bias, data.acceptable_error)
-
-    model.weights = data["weights"]
-    model.bias = data["bias"]
+def get_model(model_name: str, savePath='./Models/'):
+    model_name = model_name.replace(" ", "_")
+    model_path = f"{savePath}{model_name}.pkl"
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model '{model_name}' not found in {savePath}")
+    with open(model_path, "rb") as f:
+        model = pickle.load(f)
     return model
          
 def train_model (model: Adaline|Perceptron, class_pair, feature_pair):
