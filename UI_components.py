@@ -13,6 +13,8 @@ features = [
 ]
 classes = ["Adelie", "Chinstrap", "Gentoo"]
 
+origin_locations = ["Dream", "Biscoe", "Torgersen"]
+origin_mapping = {"Dream":1,"Biscoe":0,"Torgersen":2}
 
 def construct_model_UI():
     st.title("Create Your Model")
@@ -189,26 +191,34 @@ def predict_model_UI():
         user_inputs = {}
         
         for feature in selected_features:
-            # Set appropriate min/max values based on feature type
-            min_val, max_val = get_feature_range(feature)
-            val = st.number_input(
-                f"Enter {feature}", 
-                format="%.4f",
-                min_value=min_val,
-                max_value=max_val,
-                help=f"Must be between {min_val} and {max_val}"
-            )
+            # print(feature)
+            if feature == "OriginLocation":
+                selected_origin = st.selectbox(
+                    "Select Origin", origin_locations, key="OriginFeature"
+                )
+                selected_origin = origin_mapping[selected_origin]
+                user_inputs["OriginLocation"] = selected_origin
+            else:
+                # Set appropriate min/max values based on feature type
+                min_val, max_val = get_feature_range(feature)
+                val = st.number_input(
+                    f"Enter {feature}", 
+                    format="%.4f",
+                    min_value=min_val,
+                    max_value=max_val,
+                    help=f"Must be between {min_val} and {max_val}"
+                )
             
-            # Validate and show error immediately
-            try:
-                InputValidator.validate_column(feature, val)
-                user_inputs[feature] = val
-                # Clear error if validation passes
-                if feature in st.session_state.validation_errors:
-                    del st.session_state.validation_errors[feature]
-            except ValidationError as e:
-                st.session_state.validation_errors[feature] = str(e)
-                st.error(f"❌ {str(e)}")
+                # Validate and show error immediately
+                try:
+                    InputValidator.validate_column(feature, val)
+                    user_inputs[feature] = val
+                    # Clear error if validation passes
+                    if feature in st.session_state.validation_errors:
+                        del st.session_state.validation_errors[feature]
+                except ValidationError as e:
+                    st.session_state.validation_errors[feature] = str(e)
+                    st.error(f"❌ {str(e)}")
 
         # Show summary of validation errors
         if st.session_state.validation_errors:
