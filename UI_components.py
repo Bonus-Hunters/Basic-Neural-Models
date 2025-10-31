@@ -119,8 +119,8 @@ def construct_model_UI():
 def display_plot(model, model_data, dataset_vals):
     X_train, X_test, Y_train, Y_test = dataset_vals
     plt = helper.construct_decision_plot(
-        X_train,
-        Y_train,
+        X_test,
+        Y_test,
         model.weights,
         model.bias,
         model_data["features"],
