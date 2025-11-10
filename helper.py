@@ -1,30 +1,36 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+
 def prepare_data(df, class_pair, feature_pair):
     """
     Prepare data for binary classification with selected features
     """
     # Filter data for the two classes
-    df_filtered = df[df['Species'].isin(class_pair)].copy()
-    
+    df_filtered = df[df["Species"].isin(class_pair)].copy()
+
     # Create binary labels (1 for first class, -1 for second class)
-    df_filtered['binary_label'] = df_filtered['Species'].apply(lambda x: 1 if x == class_pair[0] else -1)
-    
+    df_filtered["binary_label"] = df_filtered["Species"].apply(
+        lambda x: 1 if x == class_pair[0] else -1
+    )
+
     print(feature_pair)
     # Select features and convert boolean columns to integers (0/1)
     X = df_filtered[list(feature_pair)].copy()
-    
+
     # Convert boolean columns to integers
     for col in X.columns:
-        if X[col].dtype == 'bool':
+        if X[col].dtype == "bool":
             X[col] = X[col].astype(int)
-        
+
     X_values = X.values.astype(float)
 
-    y = df_filtered['binary_label']
-    X_train, X_test , y_train, y_test = train_test_split(X_values,y,test_size=0.4,stratify=y, random_state= 42)
-    return X_train, X_test , y_train, y_test
+    y = df_filtered["binary_label"]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_values, y, test_size=0.4, stratify=y, random_state=42
+    )
+    return X_train, X_test, y_train, y_test
+
 
 def scale_features(X):
     """Scale features to have zero mean and unit variance"""
@@ -34,9 +40,11 @@ def scale_features(X):
     std = np.where(std == 0, 1, std)
     return (X - mean) / std, mean, std
 
+
 def apply_scaling(X, mean, std):
     """Apply scaling to new data using precomputed mean and std"""
     return (X - mean) / std
+
 
 def calc_confusion_matrix(true_labels, predicted_labels):
     tp = tn = fp = fn = 0
@@ -54,16 +62,27 @@ def calc_confusion_matrix(true_labels, predicted_labels):
         "True Positive": tp,
         "True Negative": tn,
         "False Positive": fp,
-        "False Negative": fn
+        "False Negative": fn,
     }
+
 
 def signum(x):
     return np.where(x >= 0, 1, -1)
 
+
 def linear(x):
     return x
 
-def calc(features,weights,bias,activation_function):
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
+def tanh(x):
+    return np.tanh(x)
+
+
+def calc(features, weights, bias, activation_function):
     linear_output = np.dot(features, weights) + bias
 
     prediction = activation_function(linear_output)
@@ -82,19 +101,19 @@ def construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class
     plt.figure(figsize=(6, 5))
 
     # Scatter the training data
-    for label, color, name in zip([1, -1], ['blue', 'orange'], class_pair):
+    for label, color, name in zip([1, -1], ["blue", "orange"], class_pair):
         plt.scatter(
             X_train[y_train == label][:, 0],
             X_train[y_train == label][:, 1],
             color=color,
-            label=name
+            label=name,
         )
 
     # Calculate decision boundary line
     # Line equation: w1*x1 + w2*x2 + b = 0  -->  x2 = -(w1*x1 + b)/w2
     x1_vals = np.linspace(X_train[:, 0].min(), X_train[:, 0].max(), 100)
     x2_vals = -(weights[0] * x1_vals + bias) / weights[1]
-    plt.plot(x1_vals, x2_vals, color='black', linewidth=2)
+    plt.plot(x1_vals, x2_vals, color="black", linewidth=2)
 
     plt.xlabel(feature_pair[0])
     plt.ylabel(feature_pair[1])
@@ -103,8 +122,11 @@ def construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class
     plt.grid(True)
     return plt
 
+
 def plot_decision_boundary(X_train, y_train, weights, bias, feature_pair, class_pair):
-    plt = construct_decision_plot(X_train, y_train, weights, bias, feature_pair, class_pair)
+    plt = construct_decision_plot(
+        X_train, y_train, weights, bias, feature_pair, class_pair
+    )
     plt.show()
 
 
@@ -121,6 +143,7 @@ def test_classifier(model, X_test, y_test):
 
     return cm, acc
 
+
 def construct_cm_plot(cm_dict):
     # Extract values
     tp = cm_dict["True Positive"]
@@ -129,8 +152,7 @@ def construct_cm_plot(cm_dict):
     fn = cm_dict["False Negative"]
 
     # Create 2x2 matrix
-    cm = np.array([[tp, fn],
-                   [fp, tn]])
+    cm = np.array([[tp, fn], [fp, tn]])
 
     # Plot heatmap
     fig, ax = plt.subplots(figsize=(5, 4))
@@ -151,7 +173,9 @@ def construct_cm_plot(cm_dict):
     # Write numbers inside boxes
     for i in range(2):
         for j in range(2):
-            ax.text(j, i, cm[i, j], ha="center", va="center", color="black", fontsize=12)
+            ax.text(
+                j, i, cm[i, j], ha="center", va="center", color="black", fontsize=12
+            )
 
     plt.colorbar(im)
     return plt
@@ -160,4 +184,3 @@ def construct_cm_plot(cm_dict):
 def plot_confusion_matrix(cm_dict):
     plt = construct_cm_plot(cm_dict)
     plt.show()
-

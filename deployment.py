@@ -8,7 +8,9 @@ model = None
 model_data = {}
 
 # Sidebar menu
-menu_choice = st.sidebar.selectbox("Navigation", ["Create Model", "Predict"])
+menu_choice = st.sidebar.selectbox(
+    "Navigation", ["Create Model", "Predict", "Back-Propagation"]
+)
 
 # ------------- Streamlit User Interface -------------
 
@@ -19,7 +21,7 @@ if menu_choice == "Create Model":
     if clicked:
         X_train, X_test, Y_train, Y_test = dataset_vals
         model.train(X_train, Y_train)
-        
+
         # Save the trained model with weights
         util.save_model(
             model,
@@ -27,7 +29,7 @@ if menu_choice == "Create Model":
             model_data["classes"],
             model_data["features"],
         )
-        
+
         display_plot(model, model_data, dataset_vals)
         display_confusion_Matrix(model, dataset_vals)
         pprint.pprint(model_data)
@@ -35,3 +37,7 @@ if menu_choice == "Create Model":
 
 elif menu_choice == "Predict":
     predict_model_UI()
+
+
+elif menu_choice == "Back-Propagation":
+    backpropagation_UI()

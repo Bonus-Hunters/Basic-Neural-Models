@@ -12,9 +12,24 @@ features = [
     "BodyMass",
 ]
 classes = ["Adelie", "Chinstrap", "Gentoo"]
-
 origin_locations = ["Dream", "Biscoe", "Torgersen"]
-origin_mapping = {"Dream":1,"Biscoe":0,"Torgersen":2}
+origin_mapping = {"Dream": 1, "Biscoe": 0, "Torgersen": 2}
+activation_functions = ["Sigmoid", "Hyperbolic Tangent (Tanh)"]
+
+
+def basic_model_data():
+    eta = st.number_input(
+        "Enter Learning Rate",
+        min_value=0.0000,
+        max_value=10.0,
+        step=0.0001,
+        format="%.4f",
+    )
+    epochs = st.number_input("Enter Number of Epochs", min_value=1, step=1)
+    add_bias = st.checkbox("Add Bias")
+
+    return eta, epochs, add_bias
+
 
 def construct_model_UI():
     st.title("Create Your Model")
@@ -48,19 +63,8 @@ def construct_model_UI():
     selected_classes = st.selectbox("Select Two Classes", combine_classes)
     selected_index = combine_classes.index(selected_classes)
 
-    # Additional user inputs
-    eta = st.number_input(
-        "Enter Learning Rate",
-        min_value=0.0000,
-        max_value=10.0,
-        step=0.0001,
-        format="%.4f",
-    )
-    epochs = st.number_input("Enter Number of Epochs", min_value=1, step=1)
+    eta, epochs, add_bias = basic_model_data()
     mse_threshold = st.number_input("Enter MSE Threshold", min_value=0.0, step=0.01)
-
-    # Checkbox for bias
-    add_bias = st.checkbox("Add Bias")
 
     # Algorithm selection
     algorithm = st.radio("Choose Algorithm", ["Perceptron", "Adaline"])
@@ -189,7 +193,7 @@ def predict_model_UI():
         st.markdown("## Enter Feature Values for Prediction")
         selected_features = model_info["features"]
         user_inputs = {}
-        
+
         for feature in selected_features:
             # print(feature)
             if feature == "OriginLocation":
@@ -202,13 +206,13 @@ def predict_model_UI():
                 # Set appropriate min/max values based on feature type
                 min_val, max_val = get_feature_range(feature)
                 val = st.number_input(
-                    f"Enter {feature}", 
+                    f"Enter {feature}",
                     format="%.4f",
                     min_value=min_val,
                     max_value=max_val,
-                    help=f"Must be between {min_val} and {max_val}"
+                    help=f"Must be between {min_val} and {max_val}",
                 )
-            
+
                 # Validate and show error immediately
                 try:
                     InputValidator.validate_column(feature, val)
@@ -240,12 +244,36 @@ def predict_model_UI():
             except Exception as e:
                 st.error(f"Prediction failed: {str(e)}")
 
+
 def get_feature_range(feature):
     """Return appropriate min/max values for number inputs"""
     ranges = {
-        'CulmenLength': (30.0, 60.0),
-        'CulmenDepth': (13.0, 22.0),
-        'FlipperLength': (170.0, 240.0),
-        'BodyMass': (2500.0, 6500.0)
+        "CulmenLength": (30.0, 60.0),
+        "CulmenDepth": (13.0, 22.0),
+        "FlipperLength": (170.0, 240.0),
+        "BodyMass": (2500.0, 6500.0),
     }
     return ranges.get(feature, (0.0, 10000.0))
+
+
+def backpropagation_UI():
+    st.title("Back-propagation algorithm")
+    st.markdown("---")
+
+    # Number of hidden layers
+    hidden_layers = st.number_input(
+        "Enter number of hidden layers", min_value=1, step=1
+    )
+
+    # Number of neurons in each hidden layer
+    neurons_per_layer = []
+    for i in range(hidden_layers):
+        neurons = st.number_input(
+            f"Enter number of neurons in hidden layer {i+1}", min_value=1, step=1
+        )
+        neurons_per_layer.append(neurons)
+    
+    eta, epochs, bias = basic_model_data()
+
+    # Activation function choice
+    activation_function = st.radio("Choose activation function", activation_functions)
