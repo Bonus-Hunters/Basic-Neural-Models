@@ -2,33 +2,37 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 
+
 def prepare_data(df, class_pair, feature_pair, test_size=0.4, random_state=42):
     """
     Prepare data for binary classification with selected features.
     """
     # Filter data for the two classes
-    df_filtered = df[df['Species'].isin(class_pair)].copy()
-    
+    df_filtered = df[df["Species"].isin(class_pair)].copy()
+
     # Create binary labels (1 for first class, -1 for second class)
-    df_filtered['binary_label'] = df_filtered['Species'].apply(lambda x: 1 if x == class_pair[0] else -1)
-    
+    df_filtered["binary_label"] = df_filtered["Species"].apply(
+        lambda x: 1 if x == class_pair[0] else -1
+    )
+
     # Select features
     X = df_filtered[list(feature_pair)].copy()
-    
+
     # Convert boolean columns to integers
     for col in X.columns:
-        if X[col].dtype == 'bool':
+        if X[col].dtype == "bool":
             X[col] = X[col].astype(int)
-        
+
     X_values = X.values.astype(float)
-    y = df_filtered['binary_label'].values
-    
+    y = df_filtered["binary_label"].values
+
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
         X_values, y, test_size=test_size, stratify=y, random_state=random_state
     )
-    
+
     return X_train, X_test, y_train, y_test
+
 
 def scale_features(X):
     """Scale features to have zero mean and unit variance."""
@@ -38,9 +42,11 @@ def scale_features(X):
     std = np.where(std == 0, 1, std)
     return (X - mean) / std, mean, std
 
+
 def apply_scaling(X, mean, std):
     """Apply scaling to new data using precomputed mean and std."""
     return (X - mean) / std
+
 
 def calc_confusion_matrix(true_labels, predicted_labels):
     """
@@ -51,18 +57,40 @@ def calc_confusion_matrix(true_labels, predicted_labels):
         "True Positive": tp,
         "True Negative": tn,
         "False Positive": fp,
-        "False Negative": fn
+        "False Negative": fn,
     }
+
 
 def signum(x):
     return np.where(x >= 0, 1, -1)
 
+
 def linear(x):
     return x
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
+def tanh(x):
+    return np.tanh(x)
+
+
+def activation_function(type):
+    if type.lower() == "signum":
+        return signum
+    elif type.lower() == "linear":
+        return linear
+    elif type.lower() == "sigmoid":
+        return sigmoid
+    elif type.lower() == "tanh":
+        return tanh
+    else:
+        raise ValueError(f"Unknown activation function type: {type}")
+
 
 def calc(features, weights, bias, activation_function):
     linear_output = np.dot(features, weights) + bias
     prediction = activation_function(linear_output)
     return prediction
-
-
