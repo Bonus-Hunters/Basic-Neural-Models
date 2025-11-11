@@ -1,6 +1,6 @@
 import streamlit as st
-import util
-from UI_components import *
+import utils.util as util
+from deployment.UI_components import *
 import pprint
 
 # Data

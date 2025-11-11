@@ -1,6 +1,6 @@
 import numpy as np
-from helper import *
-class NeuralNetworkBase:
+from utils.data_loader import *
+class NNBase:
     def __init__(self, weights=None, bias=None, use_bias=True):
         """
         Parent class for neural network models.

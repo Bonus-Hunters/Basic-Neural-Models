@@ -1,8 +1,8 @@
 import streamlit as st
-import util, helper
-from combinations import *
+import utils.util as util, utils.data_loader as data_loader , utils.plotting as plotting
+from training.combinations import *
 import numpy as np
-from input_validator import *
+from utils.validator import *
 
 features = [
     "CulmenLength",
@@ -118,7 +118,7 @@ def construct_model_UI():
 
 def display_plot(model, model_data, dataset_vals):
     X_train, X_test, Y_train, Y_test = dataset_vals
-    plt = helper.construct_decision_plot(
+    plt = plotting.construct_decision_plot(
         X_test,
         Y_test,
         model.weights,
@@ -139,8 +139,8 @@ def calc_accuracy(model, dataset_vals, y_predict):
 def display_confusion_Matrix(model, dataset_vals):
     X_train, X_test, Y_train, Y_test = dataset_vals
     y_pred = model.predict(X_test)
-    cm = helper.calc_confusion_matrix(Y_test, y_pred)
-    fig = helper.construct_cm_plot(cm)
+    cm = data_loader.calc_confusion_matrix(Y_test, y_pred)
+    fig = plotting.construct_cm_plot(cm)
     st.pyplot(fig)
     st.markdown(
         f"### Model Accuracy: {calc_accuracy(model, dataset_vals, y_pred)*100:.2f}%"
