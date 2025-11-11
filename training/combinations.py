@@ -2,10 +2,10 @@ import itertools
 import os
 import numpy as np
 import pandas as pd
-from SLP import Perceptron
-from adaline import Adaline
-import util
-from helper import *
+from nn_models.SLP import Perceptron
+from nn_models.adaline import Adaline
+import utils.util as util
+from utils.data_loader import *
 
 # Load the data
 df = pd.read_csv(util.get_data_path())

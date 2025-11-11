@@ -1,11 +1,11 @@
 import pandas as pd
-from SLP import Perceptron
-from adaline import Adaline
+from nn_models.SLP import Perceptron
+from nn_models.adaline import Adaline
 import os
 import pickle, pprint
-from helper import prepare_data,scale_features,apply_scaling
+from utils.data_loader import prepare_data,scale_features,apply_scaling
 def get_data_path():
-    return "processed_data/processed_data.csv"
+    return "data/processed/processed_data.csv"
 
 
 def concate_data_frames(df0, df1):
