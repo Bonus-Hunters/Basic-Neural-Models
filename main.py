@@ -8,7 +8,7 @@ model = None
 model_data = {}
 
 # Sidebar menu
-menu_choice = st.sidebar.selectbox("Navigation", ["Create Model", "Predict"])
+menu_choice = st.sidebar.selectbox("Navigation", ["Create Model", "Predict", "Back-Propagation"])
 
 # ------------- Streamlit User Interface -------------
 
@@ -35,3 +35,6 @@ if menu_choice == "Create Model":
 
 elif menu_choice == "Predict":
     predict_model_UI()
+
+elif menu_choice == "Back-Propagation":
+    backpropagation_UI()
