@@ -77,6 +77,26 @@ def tanh(x):
     return np.tanh(x)
 
 
+def derivative_sigmoid(x):
+    sig = sigmoid(x)
+    return sig * (1 - sig)
+
+
+def derivative_tanh(x):
+    return 1 - tanh(x) ** 2
+
+
+def derivative_activation(type):
+    if type.lower() == "sigmoid":
+        return derivative_sigmoid
+    elif type.lower() == "tanh":
+        return derivative_tanh
+    else:
+        raise ValueError(
+            f"Derivative not implemented for activation function type: {type}"
+        )
+
+
 def activation_function(type):
     if type.lower() == "signum":
         return signum
