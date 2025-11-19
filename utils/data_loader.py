@@ -77,6 +77,15 @@ def tanh(x):
     return np.tanh(x)
 
 
+def softmax(x):
+    return np.argmax(x,axis = 1) 
+
+
+def derivative_softmax(softmax_output):
+    s = softmax_output.reshape(-1, 1)
+    return np.diagflat(s) - np.dot(s, s.T)
+
+
 def derivative_sigmoid(x):
     sig = sigmoid(x)
     return sig * (1 - sig)
@@ -91,6 +100,8 @@ def derivative_activation(type):
         return derivative_sigmoid
     elif type.lower() == "tanh":
         return derivative_tanh
+    elif type.lower() == "softmax":
+        return derivative_softmax
     else:
         raise ValueError(
             f"Derivative not implemented for activation function type: {type}"
@@ -106,6 +117,8 @@ def activation_function(type):
         return sigmoid
     elif type.lower() == "tanh":
         return tanh
+    elif type.lower() == "softmax":
+        return softmax
     else:
         raise ValueError(f"Unknown activation function type: {type}")
 
