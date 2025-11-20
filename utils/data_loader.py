@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
@@ -74,7 +75,7 @@ def sigmoid(x):
 
 
 def tanh(x):
-    return np.tanh(x)
+     return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
 
 
 def softmax(x):
