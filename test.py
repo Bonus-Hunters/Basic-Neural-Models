@@ -4,8 +4,7 @@ from sklearn.metrics import accuracy_score
 import numpy as np
 X_train, X_test, y_train, y_test = utils.util.get_data_multiclass()
 
-mlp = MLP(neurons_num=[3,4,6],learning_rate=  0.01,epochs = 1000,activation="tanh")
-mlp.create_layers(5,3)
+mlp = MLP(neurons_num=[3,4,6,10,23,22,23],learning_rate=  0.01,epochs = 5000,activation="tanh")
 mlp.fit(X_train,y_train)
 y_pred = mlp.predict(X_test)
 print(y_pred)

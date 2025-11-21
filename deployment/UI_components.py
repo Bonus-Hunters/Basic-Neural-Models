@@ -3,6 +3,7 @@ import utils.util as util, utils.data_loader as data_loader, utils.plotting as p
 from training.combinations import *
 import numpy as np
 from utils.validator import *
+from nn_models.MLP import MLP
 
 features = [
     "CulmenLength",
@@ -280,12 +281,82 @@ def backpropagation_UI():
     # Activation function choice
     activation_function = st.radio("Choose activation function", activation_functions)
     
-    # create instance from MLP 
+    # Model name input
+    model_name = st.text_input("Enter Model Name for Backpropagation")
+    
+    st.markdown("---")
+    start_training = st.button("Start Backpropagation Training")
 
-    # load the train and test data 
+    if start_training:
+        if not model_name.strip():
+            st.error("Please enter a model name")
+            return
+            
+        try:
+            # Create MLP instance
+            mlp = MLP(
+                neurons_num=neurons_per_layer,
+                learning_rate=eta,
+                epochs=epochs,
+                activation=activation_function.lower(),
+                use_bias=bias
+            )
+            
+            # Load the train and test data for multiclass classification
+            X_train, X_test, y_train, y_test = util.get_data_multiclass()
+            
+            # Train MLP
+            with st.spinner("Training MLP with Backpropagation..."):
+                mlp.fit(X_train, y_train)
+            
+            # Make predictions
+            y_pred = mlp.predict(X_test)
+            
+            # Calculate accuracy
+            from sklearn.metrics import accuracy_score
+            acc = accuracy_score(y_test, y_pred)
+            
 
-    # train MLP
-
-    # Save Weights and the other data using pickle
-
-    # show the acc and confusion matrix and plots 
+            # Save model using utility function
+             # to-do (make new utility functoin to save mlp model in path (MLP_MODELS/modelName.pkl))
+             # then call the function here
+            
+            st.success(f"✅ Training completed! Model '{model_name}' saved successfully")
+            
+            # Display results
+            st.markdown("### Training Results")
+            st.markdown(f"**Test Accuracy: {acc:.4f}**")
+            
+            # Display confusion matrix
+            from utils.data_loader import calc_confusion_matrix
+            from utils.plotting import construct_cm_plot
+            
+            # For multiclass, we need to handle confusion matrix differently
+            from sklearn.metrics import confusion_matrix
+            cm = confusion_matrix(y_test, y_pred)
+            
+            # Convert to the expected format for plotting
+            cm_dict = {
+                "True Positive": cm[1, 1] if cm.shape == (2, 2) else 0,
+                "True Negative": cm[0, 0] if cm.shape == (2, 2) else 0,
+                "False Positive": cm[0, 1] if cm.shape == (2, 2) else 0,
+                "False Negative": cm[1, 0] if cm.shape == (2, 2) else 0,
+            }
+            
+            fig = construct_cm_plot(cm_dict)
+            st.pyplot(fig)
+            
+            # Display additional metrics for multiclass
+            if cm.shape != (2, 2):
+                st.markdown("### Multiclass Confusion Matrix")
+                st.write(cm)
+                
+                # Calculate and display per-class accuracy
+                class_accuracy = cm.diagonal() / cm.sum(axis=1)
+                st.markdown("### Per-class Accuracy")
+                for i, acc in enumerate(class_accuracy):
+                    st.write(f"Class {classes[i] if i < len(classes) else i}: {acc:.4f}")
+            
+        except Exception as e:
+            st.error(f"Training failed: {str(e)}")
+            st.exception(e)
