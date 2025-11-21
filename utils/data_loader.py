@@ -2,6 +2,7 @@ import math
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import LabelEncoder
 
 
 def prepare_data(df, class_pair, feature_pair, test_size=0.4, random_state=42):
@@ -34,6 +35,26 @@ def prepare_data(df, class_pair, feature_pair, test_size=0.4, random_state=42):
 
     return X_train, X_test, y_train, y_test
 
+def prepare_data_multiclass(df, test_size=0.4, random_state=42):
+    """
+    Prepare data for binary classification with selected features.
+    """
+    X = df.drop(columns=["Species"]).copy()
+
+    X_values = X.values.astype(float)
+
+
+    y = df["Species"]
+
+    label_encoder = LabelEncoder()
+    y = label_encoder.fit_transform(y)
+
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_values, y, test_size=test_size, stratify=y, random_state=random_state
+    )
+
+    return X_train, X_test, y_train, y_test
 
 def scale_features(X):
     """Scale features to have zero mean and unit variance."""
@@ -79,7 +100,32 @@ def tanh(x):
 
 
 def softmax(x):
-    return np.argmax(x,axis = 1) 
+    exps = np.exp(x - np.max(x, axis=1, keepdims=True))
+    return exps / np.sum(exps, axis=1, keepdims=True)
+
+def hardmax(x):
+    """
+    Set the largest element to 1 and the rest to 0.
+    Works for 1D (vector) or 2D (batch of vectors) numpy arrays.
+    """
+    arr = np.asarray(x)
+    if arr.ndim == 1:
+        out = np.zeros_like(arr, dtype=float)
+        idx = int(np.nanargmax(arr))
+        out[idx] = 1.0
+        return out
+    elif arr.ndim == 2:
+        out = np.zeros_like(arr, dtype=float)
+        idx = np.nanargmax(arr, axis=1)
+        rows = np.arange(arr.shape[0])
+        out[rows, idx] = 1.0
+        return out
+    else:
+        raise ValueError("hardmax supports only 1D or 2D arrays")
+    
+def derivative_hardmax(hardmax_output):
+    return np.zeros_like(hardmax_output)
+
 
 
 def derivative_softmax(softmax_output):
@@ -103,6 +149,10 @@ def derivative_activation(type):
         return derivative_tanh
     elif type.lower() == "softmax":
         return derivative_softmax
+    elif type.lower() == "hardmax":
+        return derivative_hardmax
+    elif type.lower() == "linear":
+        return linear
     else:
         raise ValueError(
             f"Derivative not implemented for activation function type: {type}"
@@ -120,6 +170,8 @@ def activation_function(type):
         return tanh
     elif type.lower() == "softmax":
         return softmax
+    elif type.lower() == "hardmax":
+        return hardmax
     else:
         raise ValueError(f"Unknown activation function type: {type}")
 

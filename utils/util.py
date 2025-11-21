@@ -3,7 +3,7 @@ from nn_models.SLP import Perceptron
 from nn_models.adaline import Adaline
 import os
 import pickle, pprint
-from utils.data_loader import prepare_data, scale_features, apply_scaling
+from utils.data_loader import prepare_data, scale_features, apply_scaling,prepare_data_multiclass
 from enum import Enum
 
 
@@ -30,6 +30,13 @@ def get_data(class_pair, feature_pair):
     scaling_params = {"mean": mean, "std": std}
     return X_train, X_test, y_train, y_test
 
+def get_data_multiclass():
+    df = pd.read_csv(get_data_path())
+    X_train, X_test, y_train, y_test = prepare_data_multiclass(df)
+    X_train, mean, std = scale_features(X_train)
+    X_test = apply_scaling(X_test, mean, std)
+    scaling_params = {"mean": mean, "std": std}
+    return X_train, X_test, y_train, y_test
 
 # ----- Util Functions for UI Deployment
 def construct_model_obj(

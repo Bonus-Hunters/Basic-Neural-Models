@@ -1,5 +1,4 @@
 import numpy as np
-from utils.util import activation_function
 from typing import Callable
 
 

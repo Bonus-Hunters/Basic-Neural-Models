@@ -11,12 +11,6 @@ class MLP(NeuralNetwork):
         
         self.learning_rate = learning_rate
         self.epochs = epochs
-    
-    def __init__(self, neurons_num:List[int],activation, weights ,use_bias=True):
-        super().__init__(activation, use_bias)
-        self.hidden_layers_num = len(neurons_num)
-        self.neurons_num = neurons_num
-        self.set_all_weights(weights)
 
 
     def create_layers(self,inputs_size, output_size):
@@ -35,13 +29,13 @@ class MLP(NeuralNetwork):
             output_size,
             self.neurons_num[-1],
             activation_function("softmax"),
-            derivative_activation("softmax"),
+            derivative_activation("linear"),
             self.use_bias
             ))
     
     def fit(self,x,y):
         input_size = x.shape[1]
-        output_size = y.shape[1]
+        output_size = y.shape[0]
 
         self.create_layers(input_size, output_size)
         
@@ -55,8 +49,9 @@ class MLP(NeuralNetwork):
             # Backward pass
             self.back_propagation(y, self.learning_rate)
 
-    def predict(self, x):
-        return self.forward_propagation(x)
+    def predict(self, X):
+        logits = self.forward_propagation(X)
+        return logits
 
 
         
