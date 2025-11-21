@@ -30,6 +30,7 @@ class NeuralNetwork:
     
     def back_propagation(self, y_true, learning_rate):
         y_pred = self.layers[-1].output
+        # dA = (0 - 0.021) , (1 - 0.3213) , ( 0 - 0....)
         dA = (y_true - y_pred)  
 
         for layer in reversed(self.layers):

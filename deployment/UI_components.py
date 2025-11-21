@@ -279,3 +279,13 @@ def backpropagation_UI():
 
     # Activation function choice
     activation_function = st.radio("Choose activation function", activation_functions)
+    
+    # create instance from MLP 
+
+    # load the train and test data 
+
+    # train MLP
+
+    # Save Weights and the other data using pickle
+
+    # show the acc and confusion matrix and plots 

@@ -28,25 +28,46 @@ class MLP(NeuralNetwork):
         self.add_layer(output_size,self.neurons_num[-1])
     
     def fit(self,x,y):
+        
         input_size = x.shape[1]
         output_size = y.shape[0]
+        # lis [ 0,1,2]
+        
+        # Determine the number of output classes from the unique values in y
+        num_output_classes = 3   
+        # One-hot encode the target labels
+        new_y = np.zeros((output_size, num_output_classes))
+        new_y[np.arange(output_size), y] = 1
+        
+       # print(new_y)
+       # print(y)
 
-        self.create_layers(input_size, output_size)
+        self.create_layers(input_size, num_output_classes)
         
         for epoch in range(self.epochs):
 
             # Forward pass
             output = self.forward_propagation(x)
-
-
-
             # Backward pass
-            self.back_propagation(y, self.learning_rate)
+            self.back_propagation(new_y, self.learning_rate)
 
     def predict(self, X):
         logits = self.forward_propagation(X)
-        # apply hardmax 
-        return logits
+
+        # Apply hardmax: set the maximum value to 1 and others to 0
+        # This assumes logits is a 1D array or a single sample's output
+        sz = X.shape[0]
+        print(sz)
+        ret = []
+        for i in range(sz):
+          #  print(logits[i])
+            hardmax_output = np.zeros_like(logits[i])
+            max_index = np.argmax(logits[i])
+         #   print(max_index)    
+            hardmax_output[max_index] = 1
+            ret.append(max_index)
+     #   print(ret)
+        return ret
 
 
         
