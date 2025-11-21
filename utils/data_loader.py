@@ -152,7 +152,7 @@ def derivative_activation(type):
     elif type.lower() == "hardmax":
         return derivative_hardmax
     elif type.lower() == "linear":
-        return linear
+        return lambda x: 1
     else:
         raise ValueError(
             f"Derivative not implemented for activation function type: {type}"

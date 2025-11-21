@@ -25,13 +25,7 @@ class MLP(NeuralNetwork):
             self.add_layer(self.neurons_num[i],self.neurons_num[i-1])
         
         # output layer
-        self.layers.append(Layer(
-            output_size,
-            self.neurons_num[-1],
-            activation_function("softmax"),
-            derivative_activation("linear"),
-            self.use_bias
-            ))
+        self.add_layer(output_size,self.neurons_num[-1])
     
     def fit(self,x,y):
         input_size = x.shape[1]
@@ -51,6 +45,7 @@ class MLP(NeuralNetwork):
 
     def predict(self, X):
         logits = self.forward_propagation(X)
+        # apply hardmax 
         return logits
 
 
