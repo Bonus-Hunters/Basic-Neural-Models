@@ -310,11 +310,11 @@ def backpropagation_UI():
             
             # Make predictions
             y_pred = mlp.predict(X_test)
-            
+            y_pred_train  = mlp.predict(X_train)
             # Calculate accuracy
             from sklearn.metrics import accuracy_score
             acc = accuracy_score(y_test, y_pred)
-            
+            train_acc = accuracy_score(y_train,y_pred_train)
             # Save model using new MLP utility function
             util.save_mlp_model(
                 mlp,
@@ -327,23 +327,13 @@ def backpropagation_UI():
             
             # Display results
             st.markdown("### Training Results")
-            st.markdown(f"**Test Accuracy: {acc:.4f}**")
-            
+            st.markdown(f"**Train Accuracy: {train_acc*100:.4f}**")
+            st.markdown(f"**Test Accuracy: {acc*100:.4f}**")
             # Display confusion matrix
             from sklearn.metrics import confusion_matrix
             
             cm = confusion_matrix(y_test, y_pred)
             
-            # Convert to the expected format for plotting
-            cm_dict = {
-                "True Positive": cm[1, 1] if cm.shape == (2, 2) else 0,
-                "True Negative": cm[0, 0] if cm.shape == (2, 2) else 0,
-                "False Positive": cm[0, 1] if cm.shape == (2, 2) else 0,
-                "False Negative": cm[1, 0] if cm.shape == (2, 2) else 0,
-            }
-            
-            fig = plotting.construct_cm_plot(cm_dict)
-            st.pyplot(fig)
             
             # Display additional metrics for multiclass
             if cm.shape != (2, 2):
