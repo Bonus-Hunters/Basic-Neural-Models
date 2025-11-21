@@ -65,9 +65,6 @@ class MLP(NeuralNetwork):
 
     def predict(self, X):
         logits = self.forward_propagation(X)
-        [[0,1,0]
-         [1,0,0]]
-        [1,0]
         return np.argmax(logits, axis=1)
 
 

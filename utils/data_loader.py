@@ -111,13 +111,6 @@ def hardmax(x):
         max_index = np.argmax(x[i])
         ret[i, max_index] = 1
     return ret
-   
-
-
-
-def derivative_softmax(softmax_output):
-    s = softmax_output.reshape(-1, 1)
-    return np.diagflat(s) - np.dot(s, s.T)
 
 
 def derivative_sigmoid(x):
@@ -134,8 +127,6 @@ def derivative_activation(type):
         return derivative_sigmoid
     elif type.lower() == "tanh":
         return derivative_tanh
-    elif type.lower() == "softmax":
-        return derivative_softmax
     elif type.lower() == "linear":
         return lambda x: 1
     elif type.lower() == "hardmax":
