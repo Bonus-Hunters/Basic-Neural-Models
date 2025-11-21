@@ -104,27 +104,14 @@ def softmax(x):
     return exps / np.sum(exps, axis=1, keepdims=True)
 
 def hardmax(x):
-    """
-    Set the largest element to 1 and the rest to 0.
-    Works for 1D (vector) or 2D (batch of vectors) numpy arrays.
-    """
-    arr = np.asarray(x)
-    if arr.ndim == 1:
-        out = np.zeros_like(arr, dtype=float)
-        idx = int(np.nanargmax(arr))
-        out[idx] = 1.0
-        return out
-    elif arr.ndim == 2:
-        out = np.zeros_like(arr, dtype=float)
-        idx = np.nanargmax(arr, axis=1)
-        rows = np.arange(arr.shape[0])
-        out[rows, idx] = 1.0
-        return out
-    else:
-        raise ValueError("hardmax supports only 1D or 2D arrays")
-    
-def derivative_hardmax(hardmax_output):
-    return np.zeros_like(hardmax_output)
+    # Apply hardmax: set the maximum value to 1 and others to 0
+    sz = x.shape[0]
+    ret = np.zeros_like(x)
+    for i in range(sz):
+        max_index = np.argmax(x[i])
+        ret[i, max_index] = 1
+    return ret
+   
 
 
 
@@ -149,9 +136,9 @@ def derivative_activation(type):
         return derivative_tanh
     elif type.lower() == "softmax":
         return derivative_softmax
-    elif type.lower() == "hardmax":
-        return derivative_hardmax
     elif type.lower() == "linear":
+        return lambda x: 1
+    elif type.lower() == "hardmax":
         return lambda x: 1
     else:
         raise ValueError(
