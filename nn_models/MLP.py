@@ -11,6 +11,13 @@ class MLP(NeuralNetwork):
         
         self.learning_rate = learning_rate
         self.epochs = epochs
+    
+    def __init__(self, neurons_num:List[int],activation, weights ,use_bias=True):
+        super().__init__(activation, use_bias)
+        self.hidden_layers_num = len(neurons_num)
+        self.neurons_num = neurons_num
+        self.set_all_weights(weights)
+
 
     def create_layers(self,inputs_size, output_size):
         # reset
@@ -48,7 +55,7 @@ class MLP(NeuralNetwork):
             # Backward pass
             self.back_propagation(y, self.learning_rate)
 
-    def prefict(self, x):
+    def predict(self, x):
         return self.forward_propagation(x)
 
 

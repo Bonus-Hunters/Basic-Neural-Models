@@ -47,3 +47,34 @@ class Layer:
         self.biases -= learning_rate * db
 
         return dX
+
+    def get_weights_array(self):
+        """
+        Extract weights as an array where w0 = bias weight
+        
+        Returns:
+            Array in format [w0, w1, w2, ..., wn] where w0 is bias
+        """
+        if self.weights is None:
+            raise ValueError("Model weights not initialized.")
+        
+        if self.use_bias:
+            return np.concatenate(([self.bias], self.weights))
+        else:
+            return self.weights
+
+    def set_weights_from_array(self, weights_array):
+        """
+        Set weights from an array where w0 = bias weight
+        
+        Args:
+            weights_array: Array in format [w0, w1, w2, ..., wn] where w0 is bias
+        """
+        if self.use_bias:
+            if len(weights_array) < 1:
+                raise ValueError("Weights array must contain at least bias term")
+            self.bias = weights_array[0]
+            self.weights = weights_array[1:]
+        else:
+            self.weights = weights_array
+            self.bias = 0.0

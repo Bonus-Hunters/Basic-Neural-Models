@@ -1,7 +1,7 @@
 from typing import Callable, List
 from utils.data_loader import activation_function, derivative_activation
 from nn_models.Layer import Layer
-
+import numpy as np
 
 class NeuralNetwork:
 
@@ -36,3 +36,29 @@ class NeuralNetwork:
             dA = layer.backward(dA, learning_rate)
 
         return dA   
+    
+
+    def get_all_weights(self):
+        """
+        Returns a list of weight arrays for all layers.
+        Each element corresponds to one layer.
+        """
+        all_weights = []
+        for layer in self.layers:
+            w = layer.get_weights_array()
+            all_weights.append(w.copy())
+        return all_weights
+    
+    def set_all_weights(self, weights_list):
+        """
+        Set the weights of all layers using a list of weight arrays.
+        
+        Args:
+            weights_list: list of numpy arrays where each array is 
+                          [bias, w1, w2, ...] for one layer.
+        """
+        if len(weights_list) != len(self.layers):
+            raise ValueError("Mismatch between number of layers and weights provided.")
+        
+        for layer, w in zip(self.layers, weights_list):
+            layer.set_weights_from_array(w)
