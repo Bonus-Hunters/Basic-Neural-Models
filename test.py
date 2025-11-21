@@ -6,10 +6,11 @@ import numpy as np
 X_train, X_test, y_train, y_test = utils.util.get_data_multiclass()
 
 # Use simpler architecture and proper parameters
-mlp = MLP(neurons_num=[3,4],  # Simpler architecture
+mlp = MLP(neurons_num=[2,2,2],  # Simpler architecture
           learning_rate=0.01, 
-          epochs=1000, 
+          epochs=500, 
           activation="sigmoid", 
+          use_bias=True
           )  
 
 mlp.fit(X_train, y_train)

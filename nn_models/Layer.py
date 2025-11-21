@@ -20,40 +20,32 @@ class Layer:
         self.Z = None
         self.input = None
         self.output = None 
-
+        self.use_bias = use_bias
     def forward(self, x):
         self.input = x
-        self.Z = np.dot(x, self.weights) + self.biases
+        self.Z = np.dot(x, self.weights) 
+        if self.use_bias:
+            self.Z+= self.biases
         self.output = self.activation(self.Z)
         return self.output
     
     def backward(self, dA, learning_rate):
 
-        # dZ = dA * activation'(Z)
         dZ = dA * self.activation_derivative(self.Z)
 
-        # dW = X.T @ dZ
         dW = np.dot(self.input.T, dZ)
 
-        # db = sum of gradients across batch
-        db = np.sum(dZ, axis=0)
 
-        # dX = dZ @ W.T  (for previous layer)
         dX = np.dot(dZ, self.weights.T)
 
-        # Gradient descent update
         self.weights -= learning_rate * dW
-        self.biases -= learning_rate * db
+        if self.use_bias:
+            db = np.sum(dZ, axis=0)
+            self.biases -= learning_rate * db
 
         return dX
 
     def get_weights_array(self):
-        """
-        Extract weights as an array where w0 = bias weight
-        
-        Returns:
-            Array in format [w0, w1, w2, ..., wn] where w0 is bias
-        """
         if self.weights is None:
             raise ValueError("Model weights not initialized.")
         
@@ -63,12 +55,6 @@ class Layer:
             return self.weights
 
     def set_weights_from_array(self, weights_array):
-        """
-        Set weights from an array where w0 = bias weight
-        
-        Args:
-            weights_array: Array in format [w0, w1, w2, ..., wn] where w0 is bias
-        """
         if self.use_bias:
             if len(weights_array) < 1:
                 raise ValueError("Weights array must contain at least bias term")
