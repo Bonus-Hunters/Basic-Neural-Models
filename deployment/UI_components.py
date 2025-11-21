@@ -258,21 +258,20 @@ def get_feature_range(feature):
     }
     return ranges.get(feature, (0.0, 10000.0))
 
-
 def backpropagation_UI():
     st.title("Back-propagation algorithm")
     st.markdown("---")
 
     # Number of hidden layers
     hidden_layers = st.number_input(
-        "Enter number of hidden layers", min_value=1, step=1
+        "Enter number of hidden layers", min_value=1, step=1, value=1
     )
 
     # Number of neurons in each hidden layer
     neurons_per_layer = []
     for i in range(hidden_layers):
         neurons = st.number_input(
-            f"Enter number of neurons in hidden layer {i+1}", min_value=1, step=1
+            f"Enter number of neurons in hidden layer {i+1}", min_value=1, step=1, value=3
         )
         neurons_per_layer.append(neurons)
 
@@ -316,10 +315,13 @@ def backpropagation_UI():
             from sklearn.metrics import accuracy_score
             acc = accuracy_score(y_test, y_pred)
             
-
-            # Save model using utility function
-             # to-do (make new utility functoin to save mlp model in path (MLP_MODELS/modelName.pkl))
-             # then call the function here
+            # Save model using new MLP utility function
+            util.save_mlp_model(
+                mlp,
+                model_name,
+                classes,  # Use all three classes for multiclass
+                features,  # Use all features for multiclass
+            )
             
             st.success(f"✅ Training completed! Model '{model_name}' saved successfully")
             
@@ -328,11 +330,8 @@ def backpropagation_UI():
             st.markdown(f"**Test Accuracy: {acc:.4f}**")
             
             # Display confusion matrix
-            from utils.data_loader import calc_confusion_matrix
-            from utils.plotting import construct_cm_plot
-            
-            # For multiclass, we need to handle confusion matrix differently
             from sklearn.metrics import confusion_matrix
+            
             cm = confusion_matrix(y_test, y_pred)
             
             # Convert to the expected format for plotting
@@ -343,7 +342,7 @@ def backpropagation_UI():
                 "False Negative": cm[1, 0] if cm.shape == (2, 2) else 0,
             }
             
-            fig = construct_cm_plot(cm_dict)
+            fig = plotting.construct_cm_plot(cm_dict)
             st.pyplot(fig)
             
             # Display additional metrics for multiclass
@@ -360,3 +359,149 @@ def backpropagation_UI():
         except Exception as e:
             st.error(f"Training failed: {str(e)}")
             st.exception(e)
+    
+    # Add section to load and test existing MLP models
+    st.markdown("---")
+    st.subheader("Load Existing MLP Model")
+    
+    # Get list of available MLP models
+    available_models = util.get_all_mlp_models()
+    
+    if available_models:
+        selected_model = st.selectbox("Select MLP Model to Load", available_models)
+        
+        if st.button("Load MLP Model"):
+            try:
+                # Load the MLP model
+                mlp_model, model_info = util.get_mlp_model(selected_model)
+                
+                # Store in session state for prediction
+                st.session_state.loaded_mlp_model = mlp_model
+                st.session_state.mlp_model_info = model_info
+                
+                st.success(f"✅ Model '{selected_model}' loaded successfully")
+                
+                # Test the loaded model
+                X_train, X_test, y_train, y_test = util.get_data_multiclass()
+                y_pred = mlp_model.predict(X_test)
+                
+                # Calculate accuracy
+                from sklearn.metrics import accuracy_score
+                acc = accuracy_score(y_test, y_pred)
+                
+                st.markdown(f"**Loaded Model Test Accuracy: {acc:.4f}**")
+                
+                # Display model info
+                st.markdown("### Model Configuration")
+                st.json({
+                    "Hidden Layers": model_info["hidden_layers_num"],
+                    "Neurons per Layer": model_info["neurons_num"],
+                    "Learning Rate": model_info["learning_rate"],
+                    "Epochs": model_info["epochs"],
+                    "Activation": model_info["activation"],
+                    "Use Bias": model_info["use_bias"],
+                    "Features": model_info["features"],
+                    "Classes": model_info["classes"]
+                })
+                
+            except Exception as e:
+                st.error(f"Failed to load model: {str(e)}")
+    
+    # Prediction section for loaded MLP model
+    if hasattr(st.session_state, 'loaded_mlp_model') and st.session_state.loaded_mlp_model:
+        st.markdown("---")
+        st.subheader("Make Prediction with Loaded MLP Model")
+        
+        model_info = st.session_state.mlp_model_info
+        mlp_model = st.session_state.loaded_mlp_model
+        
+        st.markdown("### Enter Feature Values for Prediction")
+        
+        user_inputs = {}
+        validation_errors = {}
+        
+        # Get feature ranges for validation
+        feature_ranges = {
+            "CulmenLength": (30.0, 60.0),
+            "CulmenDepth": (13.0, 22.0),
+            "FlipperLength": (170.0, 240.0),
+            "BodyMass": (2500.0, 6500.0),
+        }
+        
+        # Collect user inputs for all features (since MLP uses all 5 features)
+        for feature in features:
+            if feature == "OriginLocation":
+                selected_origin = st.selectbox(
+                    "Select Origin Location", 
+                    origin_locations, 
+                    key=f"mlp_origin"
+                )
+                user_inputs["OriginLocation"] = origin_mapping[selected_origin]
+            else:
+                min_val, max_val = feature_ranges.get(feature, (0.0, 10000.0))
+                val = st.number_input(
+                    f"Enter {feature}",
+                    format="%.4f",
+                    min_value=min_val,
+                    max_value=max_val,
+                    help=f"Must be between {min_val} and {max_val}",
+                    key=f"mlp_{feature}"
+                )
+                
+                # Validate input
+                try:
+                    InputValidator.validate_column(feature, val)
+                    user_inputs[feature] = val
+                    if feature in validation_errors:
+                        del validation_errors[feature]
+                except ValidationError as e:
+                    validation_errors[feature] = str(e)
+                    st.error(f"❌ {str(e)}")
+        
+        # Show summary of validation errors
+        if validation_errors:
+            st.error("⚠️ Please fix the validation errors above before predicting.")
+        
+        if st.button("Predict Class", disabled=bool(validation_errors)):
+            try:
+                # Prepare input data in the correct order
+                input_features = []
+                for feature in features:  # Use the original features order
+                    input_features.append(user_inputs[feature])
+                
+                # Convert to numpy array and reshape for prediction
+                X_new = np.array(input_features).reshape(1, -1)
+                
+                # Scale the input using the same scaling as training data
+                # Note: You might need to save scaling parameters during training
+                # For now, we'll load some data to get scaling parameters
+                X_train, _, _, _ = util.get_data_multiclass()
+                X_train_scaled, mean, std = util.scale_features(X_train)
+                X_new_scaled = util.apply_scaling(X_new, mean, std)
+                
+                # Make prediction
+                prediction = mlp_model.predict(X_new_scaled)
+                
+                # Get predicted class label
+                predicted_class_index = prediction[0]
+                predicted_class = classes[predicted_class_index]
+                
+                # Display result
+                st.success(f"🎯 **Predicted Class: {predicted_class}**")
+                
+                # Show confidence scores (optional)
+                st.markdown("### Prediction Details")
+                st.write(f"Predicted class index: {predicted_class_index}")
+                st.write(f"Class mapping: {dict(enumerate(classes))}")
+                
+                # Display the input values for verification
+                st.markdown("### Input Values")
+                for feature, value in user_inputs.items():
+                    st.write(f"{feature}: {value}")
+                    
+            except Exception as e:
+                st.error(f"Prediction failed: {str(e)}")
+                st.exception(e)
+    
+    else:
+        st.info("No MLP model loaded. Train a new model or load an existing one above.")
